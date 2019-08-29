@@ -2,6 +2,7 @@ package com.sepro.appointmentservice.resource;
 
 import com.sepro.appointmentservice.dto.AppointmentDto;
 import com.sepro.appointmentservice.entity.Appointment;
+import com.sepro.appointmentservice.model.CustomPrincipal;
 import com.sepro.appointmentservice.repository.AppointmentRepository;
 import com.sepro.appointmentservice.repository.CustomerRepository;
 import com.sepro.appointmentservice.service.AppointmentService;
@@ -26,15 +27,23 @@ public class AppointmentController {
     @Autowired
     AppointmentService appointmentService;
 
-    @RequestMapping(value = "/appointment/{appointmentId}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    @RequestMapping(value = "/{appointmentId}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     public Optional<Appointment> getcustomerInfobyId(@PathVariable Long appointmentId){
         //TODO show if Partner(Principal user) has an relationship to the customer in Customer_partner Table
         return appointmentRepository.findById(appointmentId);
     }
 
+    @RequestMapping(value = "/all", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    public List<Appointment> getAllAppointmentsforPartner(CustomPrincipal principal){
+        // get partnerId
+        return appointmentService.getAllAppointmentsForPartner(principal.getEmail());
+    }
+
+
     @RequestMapping(value = "create" , method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public  GenericResponse createAppointment (
             @RequestBody final AppointmentDto appointmentDto){
+        //TODO before create, confirme that the appointment  is free
         Appointment appointment = new Appointment();
         appointment.setCustomer(customerRepository.findById(appointmentDto.getCustomerId()).get());
 

@@ -3,7 +3,9 @@ package com.sepro.appointmentservice.service;
 import com.sepro.appointmentservice.dto.AppointmentDto;
 import com.sepro.appointmentservice.entity.Appointment;
 import com.sepro.appointmentservice.repository.*;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.oauth2.client.OAuth2RestTemplate;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
@@ -25,6 +27,9 @@ public class AppointmentService {
 
     @Autowired
     PartnerServiceRepository partnerServiceRepository;
+
+    @Autowired
+    OAuth2RestTemplate restTemplate;
 
 
 
@@ -48,6 +53,12 @@ public class AppointmentService {
 
         appointment.setEnd(appointmentDto.getEnd());
         appointmentRepository.save(appointment);
+    }
+
+    public List<Appointment> getAllAppointmentsForPartner(String partnerEmail){
+
+       return appointmentRepository.findByPartner(partnerRepository.findByEmail(partnerEmail));
+
     }
 
 }

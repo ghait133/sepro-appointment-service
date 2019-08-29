@@ -1,5 +1,6 @@
 package com.sepro.appointmentservice.repository;
 
+import com.sepro.appointmentservice.dto.PartnerDto;
 import com.sepro.appointmentservice.entity.Appointment;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
@@ -12,6 +13,8 @@ import java.util.Optional;
 @Transactional
 public interface AppointmentRepository extends JpaRepository<Appointment,Long> {
     Optional<Appointment> findById(Long appointmentId);
+
+    List<Appointment> findByPartner(PartnerDto partner);
     @Override
     Appointment getOne(Long aLong);
 

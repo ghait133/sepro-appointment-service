@@ -9,4 +9,5 @@ import java.util.Optional;
 public interface PartnerRepository extends JpaRepository<PartnerDto, Long> {
 
     Optional<PartnerDto> findById(Long partnerId);
+    PartnerDto findByEmail(String email);
 }
