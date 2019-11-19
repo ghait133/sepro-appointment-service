@@ -45,6 +45,7 @@ public class AppointmentController {
             @RequestBody final AppointmentDto appointmentDto){
         //TODO before create, confirme that the appointment  is free
         Appointment appointment = new Appointment();
+        //TODO set partner, set date, set Employee
         appointment.setCustomer(customerRepository.findById(appointmentDto.getCustomerId()).get());
 
         appointmentRepository.save(appointment);

@@ -3,6 +3,8 @@ package com.sepro.appointmentservice.service;
 import com.sepro.appointmentservice.dto.AppointmentDto;
 import com.sepro.appointmentservice.entity.Appointment;
 import com.sepro.appointmentservice.repository.*;
+
+import java.time.Duration;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.oauth2.client.OAuth2RestTemplate;
@@ -58,6 +60,33 @@ public class AppointmentService {
     public List<Appointment> getAllAppointmentsForPartner(String partnerEmail){
 
        return appointmentRepository.findByPartner(partnerRepository.findByEmail(partnerEmail));
+
+    }
+
+    public List<Appointment> findAppointmentsforTimeInterval (AppointmentDto appointmentDto, Long startDate, Long endDate){
+        startDate = Long.valueOf(1572595200); // TODO get  the right start and end Times#
+        endDate = Long.valueOf(1573840800);
+
+        // TODO get Service duration
+        Duration duration  = partnerServiceRepository.findById(appointmentDto.getPartnerServiceId()).get().getDuration();
+
+        // TODO get all Appointment between start and end
+
+        List<Appointment> exestingAppointment = appointmentRepository.findByTimeInterval(startDate, endDate);
+        List<Appointment> freeAppointments;
+         for (int i = 0 ;  i < exestingAppointment.size(); i++){
+             if (i == 0 && exestingAppointment.get(i).getStart() - startDate >= duration){
+                 //TODO create Appointments and put it in the List
+                 for (int j = startDate; exestingAppointment.get(i).getStart() - startDate module 15min ; j+15min){
+                     freeAppointments.add(createAppointment(appointmentDto, j));
+                 }
+             }
+             if (exestingAppointment.get(i-1).getEnd() - exestingAppointment.get(i).getStart() >= duration){
+                 for (int j = exestingAppointment.get(i-1).getEnd(); exestingAppointment.get(i).getStart() - exestingAppointment.get(i-1).getEnd() module 15min ; j+15min){
+                     freeAppointments.add(createAppointment(appointmentDto, j));
+                 }
+             }
+        }
 
     }
 

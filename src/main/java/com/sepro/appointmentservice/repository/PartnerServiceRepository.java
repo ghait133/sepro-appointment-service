@@ -8,4 +8,5 @@ import java.util.Optional;
 public interface PartnerServiceRepository extends JpaRepository<PartnerServicesDto,Long> {
 
     Optional<PartnerServicesDto> findById(Long partnerserviceId);
+
 }
