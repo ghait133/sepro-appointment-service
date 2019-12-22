@@ -1,16 +1,22 @@
 package com.sepro.appointmentservice.service;
 
 import com.sepro.appointmentservice.dto.AppointmentDto;
+import com.sepro.appointmentservice.dto.EmployeeDto;
 import com.sepro.appointmentservice.entity.Appointment;
 import com.sepro.appointmentservice.repository.*;
 
 import java.time.Duration;
-import java.util.List;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.util.*;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.oauth2.client.OAuth2RestTemplate;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
+
+import static java.time.temporal.ChronoUnit.MINUTES;
 
 @Service
 @Transactional
@@ -56,38 +62,91 @@ public class AppointmentService {
         appointment.setEnd(appointmentDto.getEnd());
         appointmentRepository.save(appointment);
     }
-
+    public Optional<Appointment> getOneAppointment (Long i){
+        return appointmentRepository.findById(i);
+    }
     public List<Appointment> getAllAppointmentsForPartner(String partnerEmail){
 
        return appointmentRepository.findByPartner(partnerRepository.findByEmail(partnerEmail));
 
     }
 
-    public List<Appointment> findAppointmentsforTimeInterval (AppointmentDto appointmentDto, Long startDate, Long endDate){
-        startDate = Long.valueOf(1572595200); // TODO get  the right start and end Times#
-        endDate = Long.valueOf(1573840800);
+    public List<AppointmentDto> findAppointmentsforTimeInterval (AppointmentDto appointmentDto, LocalTime startDate, LocalTime endDate, LocalDate date){
+
 
         // TODO get Service duration
-        Duration duration  = partnerServiceRepository.findById(appointmentDto.getPartnerServiceId()).get().getDuration();
+        Duration duration  = Duration.ofSeconds(partnerServiceRepository.findById(appointmentDto.getPartnerServiceId()).get().getDuration());
 
-        // TODO get all Appointment between start and end
+        // TODO defaultDurationBetweentowAppointments ist die aus der kürzeste Dienstleistung und Ihre Häufigkeit am tag zusammen zu setzen
+        int defaultDurationBetweentowAppointments = 15;
+        //endDate = endDate.minus(duration);
+        EmployeeDto employeeDto = employeeRepository.findById(appointmentDto.getEmployeeId()).get();
+        List<Appointment> exestingAppointment = appointmentRepository.findByTimeInterval(
+                startDate.minusMinutes(defaultDurationBetweentowAppointments),
+                endDate.plusMinutes(defaultDurationBetweentowAppointments),
+                date,
+                employeeDto);
+        Collections.sort(exestingAppointment);
 
-        List<Appointment> exestingAppointment = appointmentRepository.findByTimeInterval(startDate, endDate);
-        List<Appointment> freeAppointments;
-         for (int i = 0 ;  i < exestingAppointment.size(); i++){
-             if (i == 0 && exestingAppointment.get(i).getStart() - startDate >= duration){
-                 //TODO create Appointments and put it in the List
-                 for (int j = startDate; exestingAppointment.get(i).getStart() - startDate module 15min ; j+15min){
-                     freeAppointments.add(createAppointment(appointmentDto, j));
-                 }
-             }
-             if (exestingAppointment.get(i-1).getEnd() - exestingAppointment.get(i).getStart() >= duration){
-                 for (int j = exestingAppointment.get(i-1).getEnd(); exestingAppointment.get(i).getStart() - exestingAppointment.get(i-1).getEnd() module 15min ; j+15min){
-                     freeAppointments.add(createAppointment(appointmentDto, j));
-                 }
-             }
+        List<AppointmentDto> freeAppointments = new ArrayList();
+        int y = 0;
+        Long freeTimeInterval = Long.valueOf(0);
+
+        LocalTime e = endDate;
+
+        if (exestingAppointment.isEmpty()){
+            freeTimeInterval = MINUTES.between(startDate, e);
+            if ( freeTimeInterval >= duration.toMinutes()){
+                int x = (int) (freeTimeInterval / defaultDurationBetweentowAppointments);
+                for (int j = 0; j <  x ; j++){
+                    freeTimeInterval  = MINUTES.between(startDate.plusMinutes(j * defaultDurationBetweentowAppointments), e);
+                    if (freeTimeInterval >= duration.toMinutes() ){
+                        AppointmentDto appointment_1 = new AppointmentDto(appointmentDto,date,startDate.plusMinutes(j * defaultDurationBetweentowAppointments),(startDate.plusMinutes(duration.toMinutes())).plusMinutes(j * defaultDurationBetweentowAppointments));
+                        freeAppointments.add(appointment_1);
+                    }
+
+                }
+            }
+        } else {
+            if (exestingAppointment.get(0).getStart().isBefore(startDate)){
+                startDate = exestingAppointment.get(0).getEnd();
+                y = 1;
+            }
+            for (int i = y; i < exestingAppointment.size(); i++) {
+                e = exestingAppointment.get(i).getStart();
+                if (i == y) {
+                    freeTimeInterval = MINUTES.between(startDate, e);
+                } else {
+                    startDate = exestingAppointment.get(i - 1).getEnd();
+                    freeTimeInterval = MINUTES.between(startDate, e);
+                }
+                if (i == exestingAppointment.size() - 1) {
+                    if (exestingAppointment.get(i).getEnd().isBefore(endDate)) {
+                        startDate = exestingAppointment.get(i).getEnd();
+                        e = endDate;
+                        freeTimeInterval = MINUTES.between(startDate, e);
+                    }
+                }
+                if (freeTimeInterval >= duration.toMinutes()) {
+                    int x = (int) (freeTimeInterval / defaultDurationBetweentowAppointments);
+                    if (x == 0) {
+                        AppointmentDto appointment = new AppointmentDto(appointmentDto, date, startDate, startDate.plusMinutes(duration.toMinutes()));
+                        freeAppointments.add(appointment);
+                        continue;
+                    }
+                    for (int j = 0; j < x; j++) {
+                        freeTimeInterval = MINUTES.between(startDate.plusMinutes(j * defaultDurationBetweentowAppointments), e);
+                        if (freeTimeInterval >= duration.toMinutes()) {
+                            AppointmentDto appointment_1 = new AppointmentDto(appointmentDto, date, startDate.plusMinutes(j * defaultDurationBetweentowAppointments), (startDate.plusMinutes(duration.toMinutes())).plusMinutes(j * defaultDurationBetweentowAppointments));
+                            freeAppointments.add(appointment_1);
+                        }
+
+                    }
+                }
+
+            }
         }
-
+        return freeAppointments;
     }
 
 }

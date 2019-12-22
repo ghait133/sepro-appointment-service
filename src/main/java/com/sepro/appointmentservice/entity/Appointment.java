@@ -13,7 +13,7 @@ import java.time.LocalTime;
 
 @Entity
 @Table(name = "appointment")
-public class Appointment extends BaseIdEntity implements Serializable {
+public class Appointment extends BaseIdEntity implements Serializable, Comparable< Appointment > {
     private static final long serialVersionUID = 1L;
 
 
@@ -39,6 +39,7 @@ public class Appointment extends BaseIdEntity implements Serializable {
     private AppointmentStatus status;
 
     private Long appointmentInfoId;
+    
     private LocalDate date;
     private LocalTime start;
     private LocalTime end;
@@ -116,5 +117,10 @@ public class Appointment extends BaseIdEntity implements Serializable {
 
     public void setEnd(LocalTime end) {
         this.end = end;
+    }
+
+    @Override
+    public int compareTo(Appointment o) {
+        return this.getStart().compareTo(o.getStart());
     }
 }

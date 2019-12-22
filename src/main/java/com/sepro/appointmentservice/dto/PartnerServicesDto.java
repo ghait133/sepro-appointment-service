@@ -14,7 +14,7 @@ public class PartnerServicesDto extends BaseIdEntity {
     private String label;
     private String secondeLabel;
     private String description;
-    private Duration duration;
+    private Long duration;
     private double price;
     private boolean enabled;
 
@@ -61,11 +61,11 @@ public class PartnerServicesDto extends BaseIdEntity {
         this.description = description;
     }
 
-    public Duration getDuration() {
+    public Long getDuration() {
         return duration;
     }
 
-    public void setDuration(Duration duration) {
+    public void setDuration(Long duration) {
         this.duration = duration;
     }
 

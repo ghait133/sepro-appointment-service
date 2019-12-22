@@ -1,5 +1,6 @@
 package com.sepro.appointmentservice.repository;
 
+import com.sepro.appointmentservice.dto.EmployeeDto;
 import com.sepro.appointmentservice.dto.PartnerDto;
 import com.sepro.appointmentservice.entity.Appointment;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -8,6 +9,8 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import javax.transaction.Transactional;
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -23,9 +26,11 @@ public interface AppointmentRepository extends JpaRepository<Appointment,Long> {
     @Override
     List<Appointment> findAll();
 
-    @Query("select t from appointment t where t.start = :starTime and t.end = :endTime")
+    @Query("select t from Appointment t where t.end >= :starTime and t.start <= :endTime and t.date = :date and t.employee=:employee")
     List<Appointment> findByTimeInterval(
-            @Param("starTime") Long starTime,
-            @Param("endTime") Long endTime);
+            @Param("starTime") LocalTime starTime,
+            @Param("endTime") LocalTime endTime,
+            @Param("date")LocalDate date,
+            @Param("employee") EmployeeDto employee);
 
 }

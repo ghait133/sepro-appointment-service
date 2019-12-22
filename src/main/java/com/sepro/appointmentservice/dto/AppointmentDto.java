@@ -24,6 +24,21 @@ public class AppointmentDto {
         this.end = end;
         this.start = start;
     }
+    public AppointmentDto(Long customerId, Long partnerId, Long employeeId, Long partnerServiceId) {
+        this.customerId = customerId;
+        this.partnerId = partnerId;
+        this.employeeId = employeeId;
+        this.partnerServiceId = partnerServiceId;
+    }
+    public AppointmentDto(AppointmentDto appointment, LocalDate date, LocalTime start, LocalTime end) {
+        this.customerId = appointment.getCustomerId();
+        this.partnerId = appointment.getPartnerId();
+        this.employeeId = appointment.getEmployeeId();
+        this.partnerServiceId = appointment.partnerServiceId;
+        this.date = date;
+        this.end = end;
+        this.start = start;
+    }
 
     public Long getCustomerId() {
         return customerId;
